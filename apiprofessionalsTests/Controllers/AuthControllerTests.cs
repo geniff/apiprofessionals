@@ -7,7 +7,6 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authentication;
-using apiprofessionalsTests.Controllers;
 using apiprofessionals.Models;
 using apiprofessionals.RegisterDto;
 using Microsoft.EntityFrameworkCore;
@@ -21,17 +20,11 @@ namespace apiprofessionals.Controllers.Tests
         private AuthController _authController;
         private VendingDbContext _dbContext;
 
-        public AuthControllerTests(AuthController authController, VendingDbContext dbContext)
-        {
-            _authController = authController;
-            _dbContext = dbContext;
-        }
-
         [TestInitialize]
         public void Setup()
         {
             var options = new DbContextOptionsBuilder<VendingDbContext>()
-                .UseInMemoryDatabase(databaseName: "TestDb")
+                .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
                 .Options;
             _dbContext = new VendingDbContext(options);
             var user = new UserModel
@@ -70,6 +63,22 @@ namespace apiprofessionals.Controllers.Tests
 
             var result = _authController.Login(dto);
             Assert.IsInstanceOfType(result, typeof(OkObjectResult));
+        }
+
+        [TestMethod()]
+        public void Register_Correct_ReturnRegistered()
+        {
+            var dto = new apiprofessionals.RegisterDto.RegisterDto
+            {
+                FullName = "Test",
+                Email = "testRegister@example.ru",
+                Password = "Password123"
+            };
+
+            var result = _authController.Register(dto);
+            var okResult = result as OkObjectResult;
+            Assert.IsNotNull(okResult, "Ожидается OkObjectResult");
+            Assert.AreEqual("Пользователь зарегистрирован", okResult.Value);
         }
     }
 }
